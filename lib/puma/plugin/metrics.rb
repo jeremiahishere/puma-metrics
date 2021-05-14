@@ -18,7 +18,13 @@ Puma::Plugin.create do
     metrics.min_threads = 0
     metrics.max_threads = 1
 
-    app.retrieve_and_parse_stats!
+    Thread.new do
+      10.times do
+        puts "hi mom"
+        app.retrieve_and_parse_stats!
+        sleep(5)
+      end
+    end
 
     case uri.scheme
     when 'tcp'
