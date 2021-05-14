@@ -9,10 +9,6 @@ Puma::Plugin.create do
 
     require 'puma/metrics/app'
 
-    puts launcher.stats
-    Rails.logger.error(launcher.stats)
-    puts launcher.events
-    Rails.logger.error(launcher.events)
 
     Puma::Metrics::Config.registry = Prometheus::Client.registry
     app = Puma::Metrics::App.new launcher
@@ -21,6 +17,8 @@ Puma::Plugin.create do
     metrics = Puma::Server.new app, launcher.events
     metrics.min_threads = 0
     metrics.max_threads = 1
+
+    app.retrieve_and_parse_stats!
 
     case uri.scheme
     when 'tcp'
