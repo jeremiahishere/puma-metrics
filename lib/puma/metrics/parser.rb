@@ -11,6 +11,7 @@ module Puma
       end
 
       def parse(symbol_keyed_stats, labels = {})
+        Rails.logger.error(symbol_keyed_stats)
         symbol_keyed_stats.each do |key, value|
           value.each { |s| parse(s, labels.merge(index: s[:index])) } if key == :worker_status
           parse(value, labels) if key == :last_status
