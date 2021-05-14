@@ -9,27 +9,21 @@ Puma::Plugin.create do
 
     require 'puma/metrics/app'
 
-
-    Puma::Metrics::Config.registry = Prometheus::Client.registry
-    app = Puma::Metrics::App.new launcher
-    uri = URI.parse str
-
-    metrics = Puma::Server.new app, launcher.events
-    metrics.min_threads = 0
-    metrics.max_threads = 1
-
-    Thread.new do
+    thr = Thread.new do
       10.times do
         puts "hi mom"
-        app.retrieve_and_parse_stats!
+        launcher.events.log "hi mom"
+        parser = Puma::Metrics::Parser.new(clustered: false).parse(launcher.stats)
         sleep(5)
       end
     end
 
+    thr.join
+
     case uri.scheme
     when 'tcp'
       launcher.events.log "* Starting metrics server on #{str}"
-      metrics.add_tcp_listener uri.host, uri.port
+      # metrics.add_tcp_listener uri.host, uri.port
     else
       launcher.events.error "Invalid control URI: #{str}"
     end
@@ -37,12 +31,12 @@ Puma::Plugin.create do
     launcher.events.register(:state) do |state|
       if %i[halt restart stop].include?(state)
         # rubocop:disable Style/SoleNestedConditional
-        metrics.stop(true) unless metrics.shutting_down?
+        # metrics.stop(true) unless metrics.shutting_down?
         # rubocop:enable Style/SoleNestedConditional
       end
     end
 
-    metrics.run
+    # metrics.run
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
